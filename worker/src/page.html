@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Results Pipeline</title>
+<style nonce="__NONCE__">
+:root {
+  --bg: #f6f7f9; --panel: #ffffff; --ink: #1b1f24; --muted: #5b6573; --line: #e2e6eb;
+  --accent: #2f5bd3; --accent-ink: #ffffff; --accent-soft: #e7edfc;
+  --ok: #1f7a4d; --ok-soft: #e3f4ea; --warn: #9a6200; --warn-soft: #fdf1dc;
+  --bad: #b3261e; --bad-soft: #fbe4e2; --chip: #eef1f5; --bar: #2f5bd3; --track: #e7eaef;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .06);
+  --radius: 10px;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1216; --panel: #171b21; --ink: #e6e9ee; --muted: #9aa4b2; --line: #2a3039;
+    --accent: #7ea2ff; --accent-ink: #0f1216; --accent-soft: #1e2a46;
+    --ok: #5cc493; --ok-soft: #15301f; --warn: #e4b45a; --warn-soft: #33270f;
+    --bad: #ff8a80; --bad-soft: #3a1a18; --chip: #232932; --bar: #7ea2ff; --track: #262c35;
+    --shadow: none;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: var(--accent); }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+header.top { background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+header.top .wrap { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding-top: 12px; padding-bottom: 12px; }
+h1 { font-size: 1.2rem; margin: 0; letter-spacing: -.01em; }
+h2 { font-size: 1.02rem; margin: 0 0 12px; }
+h3 { font-size: .95rem; margin: 0 0 8px; }
+.sub { color: var(--muted); font-size: .88rem; margin: 2px 0 0; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button, .btn { font: inherit; font-size: .9rem; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--ink); padding: 7px 12px; cursor: pointer; }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pill { display: inline-block; font-size: .78rem; padding: 2px 9px; border-radius: 999px; background: var(--chip); color: var(--muted); white-space: nowrap; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.partial, .pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.expired, .pill.failed, .pill.bad { background: var(--bad-soft); color: var(--bad); }
+main { padding: 18px 0 40px; }
+section.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow); min-width: 0; }
+.banner { border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px; background: var(--warn-soft); color: var(--warn); border: 1px solid var(--line); }
+.banner.info { background: var(--accent-soft); color: var(--ink); }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.card { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.card .name { font-weight: 600; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.card .detail { color: var(--muted); font-size: .84rem; margin-top: 4px; overflow-wrap: anywhere; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow); }
+.tile .v { font-size: 1.6rem; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.tile .k { color: var(--muted); font-size: .84rem; }
+.tile .of { color: var(--muted); font-size: .8rem; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 16px; }
+.grid2 > section.panel { margin-bottom: 0; }
+.grid2 + * { margin-top: 16px; }
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .8rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.subrow td:first-child { padding-left: 26px; color: var(--muted); }
+tfoot td { font-weight: 600; border-bottom: 0; }
+th button.sort { all: unset; cursor: pointer; }
+th button.sort:focus-visible { outline: 2px solid var(--accent); }
+th[aria-sort="ascending"] button.sort::after { content: " \25B2"; font-size: .7em; }
+th[aria-sort="descending"] button.sort::after { content: " \25BC"; font-size: .7em; }
+details { border-top: 1px solid var(--line); }
+details:first-of-type { border-top: 0; }
+details > summary { cursor: pointer; padding: 9px 2px; display: flex; justify-content: space-between; gap: 10px; list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "\25B8"; color: var(--muted); margin-right: 4px; }
+details[open] > summary::before { content: "\25BE"; }
+details > summary .lbl { flex: 1; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 2px 0 12px; }
+.chip { font: inherit; font-family: var(--mono); font-size: .78rem; padding: 2px 8px; border-radius: 6px; background: var(--chip); border: 0; color: var(--ink); cursor: pointer; }
+.chip:hover { background: var(--accent-soft); }
+.idlist summary { padding: 0; display: inline; color: var(--accent); font-size: .85rem; }
+.idlist summary::before { content: ""; margin: 0; }
+.idlist { border: 0; }
+.muted { color: var(--muted); }
+.code { font-family: var(--mono); font-size: .85rem; }
+.empty { color: var(--muted); font-style: italic; padding: 6px 0; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; align-items: center; }
+input[type=search], select { font: inherit; font-size: .9rem; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+input[type=search] { flex: 1 1 220px; min-width: 0; }
+.prog { margin: 10px 0; }
+.prog .row { display: flex; justify-content: space-between; gap: 8px; font-size: .88rem; }
+.bar { height: 10px; background: var(--track); border-radius: 6px; overflow: hidden; margin-top: 4px; }
+.bar > div { height: 100%; background: var(--bar); border-radius: 6px; width: 0; }
+.chart svg { width: 100%; height: auto; display: block; }
+.chart .b { fill: var(--bar); }
+.chart .b0 { fill: var(--track); }
+.chart text { fill: var(--muted); font-size: 10px; font-family: inherit; }
+.chart text.val { fill: var(--ink); font-size: 10px; }
+.chart line { stroke: var(--line); }
+.stage { white-space: nowrap; }
+.how dl { display: grid; grid-template-columns: minmax(120px, 220px) 1fr; gap: 6px 16px; margin: 0; }
+.how dt { font-weight: 600; }
+.how dd { margin: 0; color: var(--muted); }
+footer { color: var(--muted); font-size: .82rem; padding: 0 0 30px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 640px) {
+  .how dl { grid-template-columns: 1fr; }
+  .how dd { margin-bottom: 8px; }
+  header.top { position: static; }
+  .tile .v { font-size: 1.35rem; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div>
+      <h1>Results pipeline</h1>
+      <p class="sub" id="updated">Loading…</p>
+    </div>
+    <div class="controls">
+      <span class="pill" id="mode-pill">—</span>
+      <button type="button" class="primary" id="btn-update">Update now</button>
+      <button type="button" id="btn-auto">Start auto-update</button>
+      <button type="button" id="btn-pause">Pause</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="main">
+  <div id="banner" class="banner" role="status" hidden></div>
+
+  <section class="panel" aria-labelledby="h-sources">
+    <h2 id="h-sources">Sources</h2>
+    <div class="cards" id="sources"></div>
+  </section>
+
+  <div class="tiles" id="tiles" aria-label="Summary"></div>
+
+  <div class="grid2">
+    <section class="panel" aria-labelledby="h-release">
+      <h2 id="h-release">Release summary</h2>
+      <div class="scroll"><table id="release"></table></div>
+    </section>
+    <section class="panel" aria-labelledby="h-stage">
+      <h2 id="h-stage">Scoring-tool stage: online vs offline</h2>
+      <p class="sub">All courses in the scoring tool, including those on hold.</p>
+      <div class="scroll"><table id="stages"></table></div>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="h-gaps">
+    <h2 id="h-gaps">Where courses are waiting</h2>
+    <p class="sub">Courses that reached one step but not the next (on-hold courses excluded). Open a row to see the courses; click a course to find it in the register.</p>
+    <div id="gaps"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-queue">
+    <h2 id="h-queue">Pending work queue</h2>
+    <div class="toolbar">
+      <label class="sr" for="queue-filter">Filter by action</label>
+      <select id="queue-filter"><option value="">All actions</option></select>
+      <span class="muted" id="queue-count"></span>
+    </div>
+    <div class="scroll"><table id="queue"></table></div>
+  </section>
+
+  <div class="grid2">
+    <section class="panel chart" aria-labelledby="h-perday">
+      <h2 id="h-perday">Sign-offs per day</h2>
+      <div id="perday"></div>
+    </section>
+    <section class="panel" aria-labelledby="h-recent">
+      <h2 id="h-recent">Recent sign-offs</h2>
+      <div class="scroll"><table id="recent"></table></div>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="panel" aria-labelledby="h-certs">
+      <h2 id="h-certs">Certificates</h2>
+      <div id="certs"></div>
+    </section>
+    <section class="panel" aria-labelledby="h-pub">
+      <h2 id="h-pub">Publishing</h2>
+      <div id="pub"></div>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="panel" aria-labelledby="h-bydate">
+      <h2 id="h-bydate">Courses by exam date</h2>
+      <div class="scroll"><table id="bydate"></table></div>
+    </section>
+    <section class="panel" aria-labelledby="h-reeval">
+      <h2 id="h-reeval">Re-evaluations</h2>
+      <div class="scroll"><table id="reeval"></table></div>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="h-register" id="register-panel">
+    <h2 id="h-register">Course register</h2>
+    <div class="toolbar">
+      <label class="sr" for="search">Search courses</label>
+      <input type="search" id="search" placeholder="Search by code, name, stage or issue">
+      <label class="sr" for="stage-filter">Filter by stage</label>
+      <select id="stage-filter"><option value="">All stages</option></select>
+      <span class="muted" id="register-count" aria-live="polite"></span>
+    </div>
+    <div class="scroll"><table id="register"></table></div>
+  </section>
+
+  <section class="panel how" aria-labelledby="h-how">
+    <h2 id="h-how">How to read this</h2>
+    <dl>
+      <dt>Stage</dt><dd>Where a course is in the scoring tool: Not started → Opened → QP check → Moderation → Score summary → Awaiting verify (faculty signed off in the tool) → Verified.</dd>
+      <dt>Release summary</dt><dd>Counts across the whole pipeline, from the planner to results being published. Indented rows are subsets of the row above.</dd>
+      <dt>Where courses are waiting</dt><dd>Each row is a hand-off between two consecutive steps. A course listed there finished the first step and is waiting on the second.</dd>
+      <dt>Pending work queue</dt><dd>The single next action for every active course, oldest first. "Days" counts from the date the course became ready for that action (exam, sharing or sign-off date).</dd>
+      <dt>Sources</dt><dd><b>ok</b>: read fully. <b>partial</b>: some pages loaded without their table, so the previous good read was kept. <b>expired</b>: the source showed a sign-in page; sign in again on the collector machine. <b>failed</b>: the read errored; the previous data is shown.</dd>
+      <dt>Update now / auto-update</dt><dd>The buttons do not read anything themselves. They set a small control record; the collector checks it every 20 seconds and reads the sources only when asked (or every 5 minutes while auto-update is on). The page reloads itself when new data arrives.</dd>
+      <dt>Privacy</dt><dd>Only course-level totals reach this page. Raw source data stays on the collector machine.</dd>
+    </dl>
+  </section>
+</main>
+<footer class="wrap" id="footer"></footer>
+
+<script id="boot" type="application/json">"__BOOT__"</script>
+<script nonce="__NONCE__">
+(function () {
+  'use strict';
+  var boot = {};
+  try { boot = JSON.parse(document.getElementById('boot').textContent) || {}; } catch (e) { boot = {}; }
+  var D = boot.data;
+  var control = boot.control || null;
+  var preview = !!boot.preview;
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---- tiny DOM helper: never uses innerHTML for data --------------------
+  function h(tag, attrs) {
+    var el = document.createElement(tag);
+    if (attrs) for (var k in attrs) {
+      var v = attrs[k];
+      if (v == null || v === false) continue;
+      if (k === 'class') el.className = v;
+      else if (k === 'text') el.textContent = v;
+      else if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+    for (var i = 2; i < arguments.length; i++) append(el, arguments[i]);
+    return el;
+  }
+  function append(el, c) {
+    if (c == null || c === false) return;
+    if (Array.isArray(c)) { c.forEach(function (x) { append(el, x); }); return; }
+    el.appendChild(typeof c === 'object' ? c : document.createTextNode(String(c)));
+  }
+  function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); return el; }
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function s(tag, attrs, text) {
+    var el = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) el.setAttribute(k, attrs[k]);
+    if (text != null) el.textContent = text;
+    return el;
+  }
+
+  // ---- formatting ---------------------------------------------------------
+  var nf = new Intl.NumberFormat();
+  function n(x) { return x == null ? '—' : nf.format(x); }
+  function pct(a, b) { return b ? Math.round(100 * a / b) : 0; }
+  function parseDay(iso) { var p = String(iso).split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function day(iso) { return iso ? parseDay(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '—'; }
+  function dayLong(iso) { return iso ? parseDay(iso).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : 'No date'; }
+  function when(ts) {
+    if (!ts) return '—';
+    var d = new Date(ts);
+    return d.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  }
+  function ago(ts) {
+    if (!ts) return '';
+    var m = Math.round((Date.now() - new Date(ts).getTime()) / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return m + ' min ago';
+    var hr = Math.round(m / 60);
+    return hr < 48 ? hr + ' h ago' : Math.round(hr / 24) + ' days ago';
+  }
+  function yn(b) { return b ? 'Yes' : '—'; }
+
+  var courseById = {};
+  if (D && D.courses) D.courses.forEach(function (c) { courseById[c.id] = c; });
+
+  function jumpTo(id) {
+    $('search').value = id;
+    $('stage-filter').value = '';
+    renderRegister();
+    $('register-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function chips(ids) {
+    if (!ids || !ids.length) return h('p', { class: 'empty', text: 'None' });
+    return h('div', { class: 'chips' }, ids.map(function (id) {
+      var c = courseById[id];
+      return h('button', { type: 'button', class: 'chip', title: c ? c.name : id, onclick: function () { jumpTo(id); } }, id);
+    }));
+  }
+  function idList(ids) {
+    if (!ids || !ids.length) return h('span', { class: 'muted', text: '—' });
+    return h('details', { class: 'idlist' }, h('summary', { text: 'show' }), chips(ids));
+  }
+  function table(el, head, rows, foot) {
+    clear(el);
+    append(el, h('thead', null, h('tr', null, head.map(function (c) {
+      return h('th', { class: c.num ? 'num' : null, scope: 'col' }, c.label);
+    }))));
+    append(el, h('tbody', null, rows));
+    if (foot) append(el, h('tfoot', null, foot));
+  }
+  function emptyRow(cols, msg) { return h('tr', null, h('td', { colspan: cols, class: 'empty', text: msg })); }
+  function stagePill(stage) {
+    var cls = stage === 'Verified' ? 'ok' : (stage === 'Awaiting verify' ? 'warn' : (stage === 'Not started' ? 'bad' : ''));
+    return h('span', { class: 'pill stage ' + cls, text: stage });
+  }
+
+  // ---- header + controls ----------------------------------------------------
+  function renderHeader() {
+    $('updated').textContent = D
+      ? 'Last updated ' + when(D.built_at) + ' (' + ago(D.built_at) + ')' + (D.as_of ? ' · data as of ' + dayLong(D.as_of) : '')
+      : 'No data yet';
+    var pill = $('mode-pill');
+    var mode = control && control.mode === 'auto' ? 'auto' : 'paused';
+    pill.textContent = preview ? 'Local preview' : (mode === 'auto' ? 'Auto-update on' : 'Auto-update paused');
+    pill.className = 'pill ' + (preview ? '' : (mode === 'auto' ? 'ok' : ''));
+    var banner = $('banner');
+    var pending = control && control.requested_at && (!D || new Date(control.requested_at) > new Date(D.built_at));
+    if (!D) {
+      banner.hidden = false; banner.className = 'banner info';
+      banner.textContent = 'No data has been received yet. Press "Update now" and keep the collector running.';
+    } else if (pending && !preview) {
+      banner.hidden = false; banner.className = 'banner info';
+      banner.textContent = 'Update requested by ' + (control.requested_by || 'someone') + ' ' + ago(control.requested_at) +
+        '. Waiting for the collector (it checks every 20 seconds); this page reloads when new data arrives.';
+    } else if (D.status && D.status.overall && D.status.overall !== 'ok') {
+      banner.hidden = false; banner.className = 'banner';
+      banner.textContent = 'Some sources were not read cleanly (' + D.status.overall + '). Figures may be stale; see Sources.';
+    } else banner.hidden = true;
+
+    var btns = { update: $('btn-update'), start: $('btn-auto'), pause: $('btn-pause') };
+    if (preview) {
+      Object.keys(btns).forEach(function (k) {
+        btns[k].disabled = true;
+        btns[k].title = 'Disabled in local preview: deploy the Worker to control the collector from here';
+      });
+      return;
+    }
+    btns.start.disabled = mode === 'auto';
+    btns.pause.disabled = mode !== 'auto';
+    Object.keys(btns).forEach(function (action) {
+      btns[action].onclick = function () { sendControl(action, btns[action]); };
+    });
+  }
+  function sendControl(action, btn) {
+    btn.disabled = true;
+    fetch('/api/control', {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: action })
+    }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function (c) { control = c; renderHeader(); })
+      .catch(function (e) {
+        btn.disabled = false;
+        var b = $('banner'); b.hidden = false; b.className = 'banner';
+        b.textContent = 'Could not send the request (' + e.message + '). Your Access session may have expired: reload the page.';
+      });
+  }
+  function pollMeta() {
+    if (preview) return;
+    setInterval(function () {
+      fetch('/api/meta', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (m) {
+          if (!m) return;
+          if (m.built_at && (!D || m.built_at !== D.built_at)) { location.reload(); return; }
+          control = m.control; renderHeader();
+        }).catch(function () {});
+    }, 30000);
+  }
+
+  // ---- sections -------------------------------------------------------------
+  var SOURCE_LABELS = { tool: 'Scoring tool', planner: 'Release planner', aftercheck: 'After sign-off check', signoff: 'Sign-off status' };
+  function renderSources() {
+    var el = clear($('sources'));
+    var src = (D.status && D.status.sources) || {};
+    var keys = Object.keys(src);
+    if (!keys.length) { append(el, h('p', { class: 'empty', text: 'No source status reported.' })); return; }
+    keys.forEach(function (k) {
+      var x = src[k] || {};
+      append(el, h('div', { class: 'card' },
+        h('div', { class: 'name' }, SOURCE_LABELS[k] || k, h('span', { class: 'pill ' + (x.status || ''), text: x.status || 'unknown' })),
+        h('div', { class: 'detail', text: (x.detail || '') + (x.read_at ? ' · ' + when(x.read_at) : '') })));
+    });
+    var t = D.tools || {};
+    append(el, h('div', { class: 'card' },
+      h('div', { class: 'name' }, 'Exam shifts', h('span', { class: 'pill ' + (t.shifts_completed === t.shifts_total ? 'ok' : 'warn'), text: n(t.shifts_completed) + ' / ' + n(t.shifts_total) })),
+      h('div', { class: 'detail', text: n(t.present_total) + ' present of ' + n(t.registered_total) + ' registered' +
+        (t.shifts_open && t.shifts_open.length ? ' · open: ' + t.shifts_open.map(function (x) { return day(x.date) + ' ' + x.shift; }).join(', ') : '') })));
+  }
+
+  function renderTiles() {
+    var S = D.summary, el = clear($('tiles'));
+    var tiles = [
+      ['Courses', n(S.courses), S.on_hold ? n(S.on_hold) + ' on hold' : 'none on hold'],
+      ['Scores loaded', n(S.scores_loaded), pct(S.scores_loaded, S.active) + '% of active'],
+      ['Signed off', n(S.signed_off), pct(S.signed_off, S.active) + '% of active'],
+      ['Verified', n(S.verified), pct(S.verified, S.active) + '% of active'],
+      ['Certificates', n(S.certificates), pct(S.certificates, S.active) + '% of active'],
+      ['Published', n(S.published), pct(S.published, S.active) + '% of active'],
+      ['Open issues', n(S.open_issues), n(S.queue) + ' actions queued'],
+      ['Overall pass %', D.tools && D.tools.pass_pct_overall != null ? D.tools.pass_pct_overall + '%' : '—', n(D.tools && D.tools.courses_with_stats) + ' courses with stats']
+    ];
+    tiles.forEach(function (t) {
+      append(el, h('div', { class: 'tile' }, h('div', { class: 'k', text: t[0] }), h('div', { class: 'v', text: t[1] }), h('div', { class: 'of', text: t[2] })));
+    });
+  }
+
+  function renderRelease() {
+    table($('release'), [{ label: 'Step' }, { label: 'Courses', num: true }, { label: 'List' }],
+      D.release.map(function (r) {
+        return h('tr', { class: r.sub ? 'subrow' : null }, h('td', { text: r.label }), h('td', { class: 'num', text: n(r.count) }), h('td', null, idList(r.ids)));
+      }));
+  }
+
+  function renderStages() {
+    var tot = { online: 0, offline: 0, total: 0 };
+    var hasUnknown = D.stage_counts.some(function (r) { return r.unknown; });
+    var head = [{ label: 'Stage' }, { label: 'Online', num: true }, { label: 'Offline', num: true }];
+    if (hasUnknown) head.push({ label: 'Unknown', num: true });
+    head.push({ label: 'Total', num: true });
+    var rows = D.stage_counts.map(function (r) {
+      tot.online += r.online; tot.offline += r.offline; tot.total += r.total; tot.unknown = (tot.unknown || 0) + (r.unknown || 0);
+      return h('tr', null, h('td', null, stagePill(r.stage)), h('td', { class: 'num', text: n(r.online) }), h('td', { class: 'num', text: n(r.offline) }),
+        hasUnknown ? h('td', { class: 'num', text: n(r.unknown) }) : null, h('td', { class: 'num', text: n(r.total) }));
+    });
+    table($('stages'), head, rows, h('tr', null, h('td', { text: 'Total' }), h('td', { class: 'num', text: n(tot.online) }),
+      h('td', { class: 'num', text: n(tot.offline) }), hasUnknown ? h('td', { class: 'num', text: n(tot.unknown) }) : null, h('td', { class: 'num', text: n(tot.total) })));
+  }
+
+  function renderGaps() {
+    var el = clear($('gaps'));
+    D.gaps.forEach(function (g) {
+      append(el, h('details', null,
+        h('summary', null, h('span', { class: 'lbl', text: g.label }), h('span', { class: 'pill ' + (g.ids.length ? 'warn' : 'ok'), text: n(g.ids.length) })),
+        chips(g.ids)));
+    });
+  }
+
+  function renderQueue() {
+    var sel = $('queue-filter');
+    var actions = {};
+    D.queue.forEach(function (q) { var a = q.action.split(':')[0]; actions[a] = (actions[a] || 0) + 1; });
+    if (sel.options.length === 1) {
+      Object.keys(actions).sort().forEach(function (a) { append(sel, h('option', { value: a, text: a + ' (' + actions[a] + ')' })); });
+      sel.addEventListener('change', renderQueue);
+    }
+    var f = sel.value;
+    var items = D.queue.filter(function (q) { return !f || q.action.split(':')[0] === f; });
+    $('queue-count').textContent = n(items.length) + ' of ' + n(D.queue.length) + ' courses';
+    var rows = items.map(function (q) {
+      var cls = q.days == null ? '' : (q.days > 7 ? 'bad' : (q.days > 3 ? 'warn' : 'ok'));
+      return h('tr', null,
+        h('td', null, h('button', { type: 'button', class: 'chip', title: 'Find in register', onclick: function () { jumpTo(q.id); } }, q.id)),
+        h('td', { text: q.name }), h('td', { text: q.action }), h('td', { class: 'muted', text: q.owner }),
+        h('td', { class: 'num' }, h('span', { class: 'pill ' + cls, title: q.since ? 'since ' + dayLong(q.since) : '', text: q.days == null ? '—' : q.days + ' d' })));
+    });
+    table($('queue'), [{ label: 'Course' }, { label: 'Name' }, { label: 'Next action' }, { label: 'Owner' }, { label: 'Days', num: true }],
+      rows.length ? rows : [emptyRow(5, 'Nothing pending.')]);
+  }
+
+  function renderPerDay() {
+    var el = clear($('perday'));
+    var pts = D.signoffs_per_day || [];
+    if (!pts.length) { append(el, h('p', { class: 'empty', text: 'No sign-offs yet.' })); return; }
+    var W = 560, H = 190, padL = 26, padB = 26, padT = 14, padR = 6;
+    var peak = Math.max(1, Math.max.apply(null, pts.map(function (p) { return p.count; })));
+    var ticks = peak <= 4 ? peak : 4;
+    var max = Math.ceil(peak / ticks) * ticks; // round up so every tick is a whole number
+    var step = (W - padL - padR) / pts.length;
+    var bw = Math.max(4, step * 0.68);
+    var total = pts.reduce(function (a, p) { return a + p.count; }, 0);
+    var svg = s('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Sign-offs per day over the last ' + pts.length + ' days: ' + total + ' in total' });
+    for (var i = 0; i <= ticks; i++) {
+      var v = Math.round(max * i / ticks);
+      var y = H - padB - (H - padB - padT) * (v / max);
+      svg.appendChild(s('line', { x1: padL, x2: W - padR, y1: y, y2: y }));
+      svg.appendChild(s('text', { x: padL - 5, y: y + 3, 'text-anchor': 'end' }, v));
+    }
+    pts.forEach(function (p, i) {
+      var x = padL + i * step + (step - bw) / 2;
+      var hgt = (H - padB - padT) * (p.count / max);
+      var g = s('g', {});
+      var r = s('rect', { x: x, y: H - padB - Math.max(hgt, 1.5), width: bw, height: Math.max(hgt, 1.5), rx: 2, class: p.count ? 'b' : 'b0' });
+      r.appendChild(s('title', {}, dayLong(p.date) + ': ' + p.count + ' sign-off' + (p.count === 1 ? '' : 's')));
+      g.appendChild(r);
+      if (p.count) g.appendChild(s('text', { x: x + bw / 2, y: H - padB - hgt - 3, 'text-anchor': 'middle', class: 'val' }, p.count));
+      if (i % 3 === 0 || i === pts.length - 1) g.appendChild(s('text', { x: x + bw / 2, y: H - 8, 'text-anchor': 'middle' }, day(p.date)));
+      svg.appendChild(g);
+    });
+    append(el, svg);
+    append(el, h('p', { class: 'sub', text: n(total) + ' sign-offs in the last ' + pts.length + ' days. Hover a bar for the date.' }));
+  }
+
+  function renderRecent() {
+    var rows = (D.recent_signoffs || []).slice(0, 10).map(function (r) {
+      return h('tr', null, h('td', { class: 'code', text: r.id }), h('td', { text: r.name }), h('td', { text: day(r.date) }),
+        h('td', { class: 'num', text: r.pass_pct == null ? '—' : r.pass_pct + '%' }),
+        h('td', null, r.verified ? h('span', { class: 'pill ok', text: 'verified' }) : h('span', { class: 'pill warn', text: 'to verify' })));
+    });
+    table($('recent'), [{ label: 'Course' }, { label: 'Name' }, { label: 'Signed off' }, { label: 'Pass %', num: true }, { label: '' }],
+      rows.length ? rows : [emptyRow(5, 'No sign-offs yet.')]);
+  }
+
+  function progress(label, done, of, pendingIds, pendingLabel) {
+    var p = pct(done, of);
+    var fill = h('div');
+    fill.style.width = p + '%';
+    var wrap = h('div', { class: 'prog' },
+      h('div', { class: 'row' }, h('span', { text: label }), h('span', { class: 'muted', text: n(done) + ' / ' + n(of) + ' (' + p + '%)' })),
+      h('div', { class: 'bar', role: 'progressbar', 'aria-label': label, 'aria-valuemin': 0, 'aria-valuemax': of || 0, 'aria-valuenow': done }, fill));
+    if (pendingIds && pendingIds.length) {
+      append(wrap, h('details', { class: 'idlist' }, h('summary', { text: n(pendingIds.length) + ' ' + (pendingLabel || 'pending') }), chips(pendingIds)));
+    }
+    return wrap;
+  }
+
+  function renderCerts() {
+    var C = D.certificates, el = clear($('certs'));
+    append(el, progress('Shared for generation (of verified)', C.shared, C.eligible, C.not_shared, 'verified, not shared yet'));
+    append(el, progress('Certificates generated (of shared)', C.generated, C.shared, C.pending, 'shared, not generated'));
+    var b = Object.keys(C.batches || {});
+    if (b.length) {
+      append(el, h('p', { class: 'sub', text: 'By batch: ' + b.map(function (k) { return k + ' ' + C.batches[k]; }).join(' · ') }));
+    }
+  }
+
+  function renderPub() {
+    var P = D.publishing, el = clear($('pub'));
+    append(el, progress('Scores pushed live (of certificates generated)', P.pushed_live, P.eligible, P.pending.pushed_live, 'not live yet'));
+    append(el, progress('Announcement', P.announced, P.pushed_live, P.pending.announcement));
+    append(el, progress('SMS', P.sms, P.pushed_live, P.pending.sms));
+    append(el, progress('Email', P.email, P.pushed_live, P.pending.email));
+    append(el, progress('Coordinator mail', P.coord_mail, P.pushed_live, P.pending.coord_mail));
+  }
+
+  function renderByDate() {
+    var rows = D.by_exam_date.map(function (r) {
+      return h('tr', null, h('td', null, h('span', { title: dayLong(r.date), text: r.date ? day(r.date) : 'No date' })),
+        h('td', { class: 'num', text: n(r.courses) }), h('td', { class: 'num', text: n(r.loaded) }), h('td', { class: 'num', text: n(r.signed_off) }),
+        h('td', { class: 'num', text: n(r.verified) }), h('td', { class: 'num', text: n(r.published) }), h('td', null, idList(r.ids)));
+    });
+    table($('bydate'), [{ label: 'Exam date' }, { label: 'Courses', num: true }, { label: 'Loaded', num: true }, { label: 'Signed', num: true },
+      { label: 'Verified', num: true }, { label: 'Live', num: true }, { label: 'List' }], rows.length ? rows : [emptyRow(7, 'No exam dates.')]);
+  }
+
+  function renderReeval() {
+    var rows = (D.reevaluations || []).map(function (r) {
+      return h('tr', null, h('td', null, h('button', { type: 'button', class: 'chip', onclick: function () { jumpTo(r.id); } }, r.id)),
+        h('td', { text: r.name }), h('td', null, h('span', { class: 'pill ' + (r.open ? 'warn' : 'ok'), text: r.status })));
+    });
+    table($('reeval'), [{ label: 'Course' }, { label: 'Name' }, { label: 'Status' }], rows.length ? rows : [emptyRow(3, 'No re-evaluation requests.')]);
+  }
+
+  // ---- course register: search + sort ------------------------------------
+  var COLS = [
+    { key: 'id', label: 'Course' }, { key: 'name', label: 'Name' }, { key: 'exam_type', label: 'Type' },
+    { key: 'exam_date', label: 'Exam' }, { key: 'stage_index', label: 'Stage' }, { key: 'signed_off_on', label: 'Signed off' },
+    { key: 'pass_pct', label: 'Pass %', num: true }, { key: 'cert_generated', label: 'Cert' }, { key: 'pushed_live_on', label: 'Live' },
+    { key: 'issue', label: 'Issue' }
+  ];
+  var sortKey = 'id', sortDir = 1;
+  function renderRegister() {
+    var q = $('search').value.trim().toLowerCase();
+    var st = $('stage-filter').value;
+    var list = D.courses.filter(function (c) {
+      if (st && c.stage !== st) return false;
+      if (!q) return true;
+      return [c.id, c.name, c.stage, c.exam_type, c.issue, c.batch].join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+    list.sort(function (a, b) {
+      var x = a[sortKey], y = b[sortKey];
+      if (x == null || x === '') return 1;
+      if (y == null || y === '') return -1;
+      if (typeof x === 'boolean') { x = +x; y = +y; }
+      return (x < y ? -1 : x > y ? 1 : 0) * sortDir || (a.id < b.id ? -1 : 1);
+    });
+    var el = clear($('register'));
+    append(el, h('thead', null, h('tr', null, COLS.map(function (c) {
+      return h('th', { scope: 'col', class: c.num ? 'num' : null, 'aria-sort': sortKey === c.key ? (sortDir > 0 ? 'ascending' : 'descending') : 'none' },
+        h('button', { type: 'button', class: 'sort', onclick: function () {
+          if (sortKey === c.key) sortDir = -sortDir; else { sortKey = c.key; sortDir = 1; }
+          renderRegister();
+        } }, c.label));
+    }))));
+    var rows = list.map(function (c) {
+      return h('tr', null,
+        h('td', { class: 'code', text: c.id }),
+        h('td', null, c.name, c.on_hold ? h('span', { class: 'pill bad', text: ' on hold' }) : null),
+        h('td', { class: 'muted', text: c.exam_type }),
+        h('td', { text: day(c.exam_date) }),
+        h('td', null, stagePill(c.stage)),
+        h('td', { text: c.signed_off_on ? day(c.signed_off_on) : yn(c.signed_off) }),
+        h('td', { class: 'num', text: c.pass_pct == null ? '—' : c.pass_pct }),
+        h('td', { text: c.cert_generated ? (c.batch || 'Yes') : '—' }),
+        h('td', { text: c.pushed_live_on ? day(c.pushed_live_on) : yn(c.live) }),
+        h('td', null, c.issue ? h('span', { class: 'pill ' + (c.issue_open ? 'warn' : ''), title: c.issue_status || '', text: c.issue }) : '—'));
+    });
+    append(el, h('tbody', null, rows.length ? rows : emptyRow(COLS.length, 'No courses match.')));
+    $('register-count').textContent = n(list.length) + ' of ' + n(D.courses.length) + ' courses';
+  }
+  function setupRegister() {
+    var sel = $('stage-filter');
+    (D.stages || []).forEach(function (st) { append(sel, h('option', { value: st, text: st })); });
+    var t;
+    $('search').addEventListener('input', function () { clearTimeout(t); t = setTimeout(renderRegister, 120); });
+    sel.addEventListener('change', renderRegister);
+    renderRegister();
+  }
+
+  // ---- go -----------------------------------------------------------------
+  renderHeader();
+  $('footer').textContent = (preview ? 'Local preview generated by the collector. ' : '') +
+    (D ? 'Built ' + when(D.built_at) + '. ' : '') + 'Course-level totals only; no candidate data.';
+  if (!D) {
+    Array.prototype.forEach.call(document.querySelectorAll('main > :not(#banner):not(.how)'), function (el) { el.hidden = true; });
+    pollMeta();
+    return;
+  }
+  [renderSources, renderTiles, renderRelease, renderStages, renderGaps, renderQueue, renderPerDay, renderRecent,
+    renderCerts, renderPub, renderByDate, renderReeval, setupRegister].forEach(function (fn) {
+    try { fn(); } catch (e) { if (window.console) console.error(fn.name, e); }
+  });
+  setInterval(renderHeader, 60000); // keep "x min ago" fresh
+  pollMeta();
+})();
+</script>
+</body>
+</html>

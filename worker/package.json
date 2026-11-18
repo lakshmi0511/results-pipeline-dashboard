@@ -1,0 +1,13 @@
+{
+  "name": "results-pipeline-dashboard-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --var ALLOW_DEV:1 --var INGEST_TOKEN:local-dev-token-0123456789abcdef0123",
+    "deploy": "wrangler deploy",
+    "test": "node --test test/worker.test.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^3.80.0"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "results-pipeline-collector",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node collector.mjs",
+    "demo": "node collector.mjs --local --once"
+  },
+  "optionalDependencies": {
+    "playwright-core": "^1.47.0"
+  }
+}

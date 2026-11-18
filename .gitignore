@@ -1,0 +1,16 @@
+# raw source reads and built data never leave the collector machine
+state/
+# real collector config holds the ingest token
+collector/config.json
+config.json
+# persistent Chrome profile for the scraper (session cookies)
+profile/
+collector/profile/
+preview.html
+node_modules/
+.wrangler/
+worker/wrangler.toml
+.dev.vars
+__pycache__/
+*.pyc
+.DS_Store

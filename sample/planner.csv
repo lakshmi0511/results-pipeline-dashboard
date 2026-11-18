@@ -1,0 +1,121 @@
+Sort Status,Course ID,Course Name,Notes,Exam Type,On Hold,Forwarded to Portal Team
+Sorted,BT124,Introduction to Fermentation Design,,Offline,No,Yes
+Sorted,BT143,Applied Cell Signalling,,Online,No,Yes
+Sorted,BT176,Applied Cell Signalling,,Online,No,No
+Sorted,BT204,Applied Cell Signalling,,Offline,No,No
+Not required,BT208,Foundations of Protein Folding,,Offline,No,No
+Sorted,BT211,Foundations of Cell Signalling,,Offline,No,Yes
+Sorted,BT230,Principles of Cell Signalling,,Online,No,No
+Sorted,BT232,Principles of Fermentation Design,,Online,No,Yes
+Not required,BT256,Applied Cell Signalling,,Offline,No,No
+Pending,BT285,Foundations of Cell Signalling,,Online,No,No
+Sorted,BT346,Practical Enzyme Engineering,,Offline,No,No
+Sorted,BT398,Principles of Cell Signalling,,Online,No,No
+Sorted,BT422,Applied Protein Folding,,Offline,No,Yes
+Sorted,CE101,Principles of Bridge Loading,,Online,No,Yes
+Sorted,CE124,Advanced Soil Mechanics,,Online,No,No
+Pending,CE138,Applied Hydraulic Structures,,Online,No,No
+Pending,CE166,Applied Soil Mechanics,,Online,No,No
+Sorted,CE202,Introduction to Bridge Loading,,Online,No,Yes
+Sorted,CE265,Advanced Hydraulic Structures,,Offline,No,No
+Sorted,CE304,Practical Hydraulic Structures,,Online,No,No
+Sorted,CE307,Practical Bridge Loading,,Online,No,Yes
+Sorted,CE341,Introduction to Bridge Loading,,Offline,No,Yes
+Pending,CE390,Practical Urban Drainage,,Online,No,No
+Sorted,CE415,Introduction to Soil Mechanics,,Online,No,No
+Sorted,CE417,Foundations of Bridge Loading,,Online,No,Yes
+Sorted,CE485,Advanced Hydraulic Structures,,Online,No,No
+Sorted,CE486,Advanced Urban Drainage,,Offline,No,No
+Sorted,CH151,Applied Separation Processes,,Offline,No,No
+Sorted,CH192,Advanced Process Safety,,Offline,No,Yes
+Not required,CH245,Advanced Mass Transfer,,Offline,No,No
+Sorted,CH260,Foundations of Mass Transfer,,Online,No,No
+Sorted,CH264,Practical Mass Transfer,,Offline,No,Yes
+Sorted,CH307,Introduction to Process Safety,,Online,No,Yes
+Sorted,CH335,Principles of Separation Processes,,Online,No,No
+Sorted,CH366,Advanced Mass Transfer,,Offline,No,No
+Pending,CH388,Advanced Reactor Kinetics,,Online,No,No
+Sorted,CH413,Introduction to Process Safety,,Online,No,Yes
+Pending,CH448,Introduction to Separation Processes,,Online,No,No
+Sorted,CH480,Practical Reactor Kinetics,,Online,No,No
+Sorted,CS146,Practical Systems Programming,,Online,No,Yes
+Sorted,CS158,Applied Compiler Craft,,Offline,No,No
+Sorted,CS217,Principles of Compiler Craft,,Online,No,Yes
+Sorted,CS245,Practical Graph Algorithms,,Online,No,No
+Sorted,CS272,Practical Compiler Craft,,Online,No,No
+Sorted,CS289,Introduction to Systems Programming,,Online,No,Yes
+Not required,CS431,Introduction to Compiler Craft,,Offline,No,No
+Sorted,CS483,Foundations of Compiler Craft,,Online,No,Yes
+Sorted,EE126,Foundations of Antenna Theory,,Online,No,Yes
+Sorted,EE140,Practical Power Electronics,,Online,No,No
+Sorted,EE256,Principles of Signal Processing,,Offline,No,No
+Sorted,EE265,Applied Antenna Theory,,Offline,No,Yes
+Sorted,EE369,Introduction to Antenna Theory,,Online,No,Yes
+Sorted,EE376,Applied Control Loops,,Offline,No,Yes
+Sorted,EE405,Introduction to Power Electronics,,Online,No,Yes
+Sorted,EE440,Introduction to Microgrid Design,,Online,No,Yes
+Sorted,EE445,Principles of Microgrid Design,,Online,No,Yes
+Sorted,EE454,Practical Power Electronics,,Online,No,Yes
+Pending,EE456,Introduction to Power Electronics,,Online,No,No
+Sorted,EE485,Applied Microgrid Design,,Online,No,Yes
+Sorted,HS106,Applied Ethics in Engineering,,Online,No,Yes
+Sorted,HS145,Principles of Behavioural Economics,,Online,No,No
+Pending,HS229,Practical Behavioural Economics,,Online,No,No
+Sorted,HS371,Applied Urban Sociology,,Offline,No,Yes
+Sorted,HS391,Foundations of Urban Sociology,,Offline,No,No
+Sorted,HS410,Introduction to Design Thinking,,Offline,No,Yes
+Sorted,HS419,Advanced Urban Sociology,,Online,No,No
+Sorted,HS420,Applied Behavioural Economics,,Offline,No,Yes
+Sorted,MA109,Practical Stochastic Processes,,Online,No,Yes
+Sorted,MA129,Introduction to Stochastic Processes,awaiting answer key,Online,Yes,No
+Sorted,MA130,Foundations of Optimisation,,Online,No,Yes
+Sorted,MA150,Foundations of Linear Algebra,,Online,No,Yes
+Pending,MA213,Advanced Numerical Methods,,Online,No,No
+Pending,MA226,Introduction to Stochastic Processes,,Online,No,No
+Sorted,MA246,Advanced Numerical Methods,awaiting answer key,Online,Yes,Yes
+Sorted,MA251,Applied Optimisation,,Online,No,No
+Sorted,MA266,Introduction to Graph Theory,,Online,No,No
+Sorted,MA313,Applied Optimisation,,Online,No,No
+Sorted,MA372,Advanced Optimisation,,Offline,No,Yes
+Sorted,MA402,Principles of Linear Algebra,,Offline,No,Yes
+Sorted,MA416,Advanced Stochastic Processes,,Online,No,Yes
+Sorted,MA460,Practical Optimisation,,Online,No,Yes
+Sorted,ME105,Introduction to Thermal Systems,,Offline,No,Yes
+Sorted,ME124,Introduction to Tribology,,Online,No,No
+Sorted,ME259,Foundations of Heat Exchanger Design,,Online,No,No
+Sorted,ME299,Practical Thermal Systems,,Online,No,Yes
+Sorted,ME314,Applied Machine Elements,,Offline,No,Yes
+Sorted,ME353,Foundations of Thermal Systems,awaiting answer key,Offline,Yes,Yes
+Sorted,ME405,Principles of Rotor Dynamics,,Online,No,No
+Sorted,ME410,Introduction to Tribology,,Online,No,No
+Sorted,ME443,Foundations of Tribology,,Online,No,Yes
+Sorted,ME475,Introduction to Thermal Systems,,Online,No,No
+Sorted,MS106,Introduction to Service Design,,Offline,No,Yes
+Pending,MS108,Advanced Operations Research,,Online,No,No
+Sorted,MS142,Practical Project Appraisal,,Online,No,Yes
+Sorted,MS183,Principles of Service Design,,Online,No,Yes
+Sorted,MS198,Practical Project Appraisal,,Online,No,Yes
+Sorted,MS325,Practical Project Appraisal,,Online,No,Yes
+Sorted,MS337,Foundations of Service Design,,Online,No,Yes
+Sorted,MS343,Practical Project Appraisal,,Offline,No,Yes
+Sorted,MS353,Advanced Service Design,,Online,No,Yes
+Sorted,MS414,Principles of Supply Chain Analytics,,Online,No,No
+Pending,MS429,Advanced Service Design,,Online,No,No
+Pending,MS444,Foundations of Service Design,,Online,No,No
+Pending,MS453,Principles of Service Design,,Online,No,No
+Sorted,PH129,Applied Quantum Optics,awaiting answer key,Online,Yes,Yes
+Sorted,PH140,Introduction to Plasma Physics,,Online,No,No
+Pending,PH180,Applied Plasma Physics,,Online,No,No
+Sorted,PH212,Applied Quantum Optics,,Online,No,No
+Sorted,PH223,Advanced Quantum Optics,,Online,No,Yes
+Sorted,PH283,Introduction to Solid State Physics,,Online,No,Yes
+Sorted,PH285,Practical Quantum Optics,,Online,No,No
+Sorted,PH299,Introduction to Acoustics,,Offline,No,Yes
+Sorted,PH301,Applied Acoustics,,Online,No,Yes
+Sorted,PH311,Introduction to Acoustics,,Online,No,No
+Sorted,PH327,Introduction to Solid State Physics,,Online,No,No
+Sorted,PH368,Principles of Quantum Optics,,Online,No,Yes
+Sorted,PH374,Introduction to Plasma Physics,,Offline,No,Yes
+Sorted,PH481,Practical Acoustics,,Offline,No,No
+Sorted,PH489,Foundations of Acoustics,,Online,No,Yes
+Sorted,PH499,Introduction to Plasma Physics,,Online,No,Yes

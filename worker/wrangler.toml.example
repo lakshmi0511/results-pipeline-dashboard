@@ -1,0 +1,25 @@
+# Copy to wrangler.toml and fill in the placeholders. wrangler.toml is not
+# secret, but keep account-specific ids out of a public fork if you prefer.
+name = "results-pipeline-dashboard"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = false
+
+[[kv_namespaces]]
+binding = "DASH_KV"
+id = "00000000000000000000000000000000"   # from: npx wrangler kv namespace create DASH_KV
+
+[vars]
+# Your Zero Trust team domain and the Access application's AUD tag.
+ACCESS_TEAM_DOMAIN = "your-team.cloudflareaccess.com"
+ACCESS_AUD = "replace-with-the-access-application-aud-tag"
+
+# Secrets (never in this file):
+#   npx wrangler secret put INGEST_TOKEN     # 32+ random chars, shared with the collector
+#
+# Do NOT add ALLOW_DEV here. `npm run dev` passes it on the command line, and
+# the Worker additionally only honours it for requests to localhost.

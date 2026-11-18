@@ -1,0 +1,16 @@
+{
+  "ingest_url": "https://results-dashboard.example.workers.dev/api/ingest",
+  "ingest_token": "replace-with-the-same-32+-char-secret-you-gave-wrangler",
+  "source": "demo",
+  "sheets": {
+    "planner": "https://sheets.example.invalid/export?format=csv&sheet=planner",
+    "aftercheck": "https://sheets.example.invalid/export?format=csv&sheet=aftercheck",
+    "signoff": "https://sheets.example.invalid/export?format=csv&sheet=signoff"
+  },
+  "profile_dir": "profile",
+  "pages": [
+    { "name": "course_list", "url": "https://scoring.example.invalid/reports/courses", "table": "#courseTable" },
+    { "name": "shift_checklist", "url": "https://scoring.example.invalid/reports/shifts", "table": "table.checklist" },
+    { "name": "course_stats", "url": "https://scoring.example.invalid/reports/statistics", "table": "#statsTable" }
+  ]
+}
